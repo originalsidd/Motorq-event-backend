@@ -1,5 +1,5 @@
 const express = require('express');
-const { MongoClient } = require('mongodb');
+const { MongoClient, ObjectId } = require('mongodb');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 
@@ -30,6 +30,8 @@ main().catch(console.error);
 const check = require('./controllers/check');
 const signup = require('./controllers/signup');
 const signin = require('./controllers/signin');
+const admin = require('./controllers/admin');
+const userEvents = require('./controllers/userEvents');
 
 const port = process.env.PORT || 3000;
 
@@ -65,6 +67,15 @@ const handleGetEvents = async (req, res) => {
         });
 };
 
+const handleGetEvent = async (req, res) => {
+    const { id } = req.params;
+    const result = await client
+        .db('Motorq_sidd')
+        .collection('events')
+        .findOne({ _id: ObjectId(id) });
+    await res.json(result);
+};
+
 app.use(cors(corsOptions));
 
 app.get('/', (req, res) => {
@@ -75,12 +86,28 @@ app.get('/events', (req, res) => {
     handleGetEvents(req, res);
 });
 
+app.get('/events/:id', (req, res) => {
+    handleGetEvent(req, res);
+});
+
+app.patch('/events/:id', (req, res) => {
+    admin.handleUpdate(req, res, client);
+});
+
+app.delete('/events/:id', (req, res) => {
+    admin.handleDelete(req, res, client);
+});
+
 app.post('/signup', (req, res) => {
     signup.handleSignup(req, res, client, bcrypt);
 });
 
 app.post('/signin', (req, res) => {
     signin.handleSignin(req, res, client, bcrypt);
+});
+
+app.post('/events', (req, res) => {
+    admin.handleCreate(req, res, client);
 });
 
 app.get('/:id', (req, res) => {

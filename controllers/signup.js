@@ -14,7 +14,7 @@ const handleSignup = async (req, res, client, bcrypt) => {
         .db('Motorq_sidd')
         .collection('users')
         .insertOne(new_user);
-    await res.json(result);
+    return res.json(result);
 };
 
 module.exports = {

@@ -5,21 +5,21 @@ const handleSignin = async (req, res, client, bcrypt) => {
     if (!name || !password) {
         return res.status(400).json('incorrect form submission');
     }
-    const new_user = {
-        name,
-    };
     const result = await client
         .db('Motorq_sidd')
         .collection('users')
-        .findOne({ name: new_user.name });
-    if (!result) {
-        return res.json('invalid');
-    }
+        .findOne({ name });
     try {
+        if (!result) {
+            return res.json('invalid ' + result);
+        }
+        if (name == 'admin' && password == 'admin') {
+            return res.json('admin');
+        }
         if (bcrypt.compareSync(password, result.password)) {
-            res.json(result._id);
+            return res.json(result._id);
         } else {
-            res.json('invalid');
+            res.json('invalid' + result);
         }
     } catch (e) {
         res.json('invalid');
