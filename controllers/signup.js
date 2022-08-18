@@ -1,7 +1,7 @@
 const saltRounds = 10;
 
 const handleSignup = async (req, res, client, bcrypt) => {
-    const { name, password } = req.body;
+    const { name, password, events } = req.body;
     if (!name || !password) {
         return res.status(400).json('incorrect form submission');
     }
@@ -9,6 +9,7 @@ const handleSignup = async (req, res, client, bcrypt) => {
     const new_user = {
         name,
         password: hash,
+        events,
     };
     const result = await client
         .db('Motorq_sidd')

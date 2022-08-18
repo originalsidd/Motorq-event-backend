@@ -20,18 +20,11 @@ async function main() {
 
 main().catch(console.error);
 
-// async function listDbs(client) {
-//     const dblist = await client.db().admin().listDatabases();
-//     dblist.databases.forEach((db) => {
-//         console.log(db.name);
-//     });
-// }
-
 const check = require('./controllers/check');
 const signup = require('./controllers/signup');
 const signin = require('./controllers/signin');
 const admin = require('./controllers/admin');
-const userEvents = require('./controllers/userEvents');
+const register = require('./controllers/register');
 
 const port = process.env.PORT || 3000;
 
@@ -69,14 +62,35 @@ const handleGetEvents = async (req, res) => {
 
 const handleGetEvent = async (req, res) => {
     const { id } = req.params;
-    const result = await client
+    const result1 = await client
+        .db('Motorq_sidd')
+        .collection('users')
+        .findOne({ _id: ObjectId(id) });
+    const arr = result1.events.map((event) => ObjectId(event));
+    await client
         .db('Motorq_sidd')
         .collection('events')
-        .findOne({ _id: ObjectId(id) });
-    await res.json(result);
+        .find({ _id: { $in: arr } })
+        .toArray(function (err, result) {
+            res.json(result);
+        });
+};
+
+const handleCodes = async (req, res) => {
+    const { code } = req.params;
+    const result = client
+        .db('Motorq_sidd')
+        .collection('codes')
+        .findOne({ code });
+    await client.db('Motorq_sidd').collection('codes').deleteOne({ code });
+    return res.json(result);
 };
 
 app.use(cors(corsOptions));
+
+app.post('/codes', (req, res) => {
+    handleCodes(req, res);
+});
 
 app.get('/', (req, res) => {
     res.send('This is working');
@@ -96,6 +110,14 @@ app.patch('/events/:id', (req, res) => {
 
 app.delete('/events/:id', (req, res) => {
     admin.handleDelete(req, res, client);
+});
+
+app.post('/events/:id', (req, res) => {
+    register.handleRegister(req, res, client);
+});
+
+app.post('/events/de/:id', (req, res) => {
+    register.handleDeRegister(req, res, client);
 });
 
 app.post('/signup', (req, res) => {
